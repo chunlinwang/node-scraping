@@ -1,0 +1,35 @@
+filebeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+filebeat.inputs:
+- type: container
+  stream: stdout
+  paths: 
+    - '/var/lib/docker/containers/*/*.log'
+- type: log
+  enabled: true
+  paths:
+    - /usr/share/filebeat/mylog/*.log    
+
+processors:
+- add_docker_metadata:
+    host: "unix:///var/run/docker.sock"
+#       host: "unix:///host_docker/docker.sock"
+
+- decode_json_fields:
+    fields: ["message"]
+    target: "json"
+    overwrite_keys: true
+
+# output.elasticsearch:
+#   hosts: ["elasticsearch:9200"]
+#   indices:
+#     - index: "filebeat"
+
+logging.json: true
+logging.metrics.enabled: false
+
+output.logstash:
+  hosts: ["logstash:5044"]
