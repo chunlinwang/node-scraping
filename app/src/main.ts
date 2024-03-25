@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 
-import { AppModule } from './app.module';
+import { AppModule } from '@src/app.module';
 
 import {
   FastifyAdapter,

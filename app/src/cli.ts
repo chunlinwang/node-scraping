@@ -1,7 +1,5 @@
 import { CommandFactory } from 'nest-commander';
-// import { Logger } from 'nestjs-pino';
-
-import { AppModule } from './app.module';
+import { AppModule } from '@src/app.module';
 
 async function bootstrap() {
   await CommandFactory.run(AppModule);

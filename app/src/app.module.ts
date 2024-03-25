@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { CrawlerModule } from './crawler/crawler.module';
 import { LoggerModule } from 'nestjs-pino';
-import { CrawlerCommand } from './crawler/crawler.command';
-import { CrawlerService } from './crawler/crawler.service';
+import { AppController } from '@src/app.controller';
+import { AppService } from '@src/app.service';
+import { CrawlerModule } from '@crawler/crawler.module';
 
 @Module({
   imports: [LoggerModule.forRoot(), CrawlerModule],
   controllers: [AppController],
-  providers: [AppService, CrawlerCommand, CrawlerService],
+  providers: [AppService],
 })
 export class AppModule {}
