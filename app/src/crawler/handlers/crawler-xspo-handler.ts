@@ -21,7 +21,7 @@ export class CrawlerXspoHandler implements CrawlerHandler {
 
   handle(): PlaywrightCrawler {
     return new PlaywrightCrawler({
-      requestHandler: async ({ request, page, enqueueLinks, $ }) => {
+      requestHandler: async ({ request, page, enqueueLinks }) => {
         if (request.label === 'DETAIL') {
           const title = await page.title();
           const item = {
@@ -36,24 +36,11 @@ export class CrawlerXspoHandler implements CrawlerHandler {
 
             item.productName = await page.locator('h1.title').textContent();
 
-            item.originPrice = (await page
-              .locator('#cartBox .product-price p.advice-price__price')
-              .first()
-              .count())
-              ? (
-                  await page
-                    .locator('#cartBox .product-price p.advice-price__price')
-                    .first()
-                    .textContent()
-                ).trim()
-              : null;
+            item.originPrice = 1;
 
-            item.salePrice = (
-              await page
-                .locator('#cartBox .product-price div.c-price span.price-value')
-                .first()
-                .textContent()
-            ).trim();
+            item.salePrice = 1;
+
+            item.currency = 'EUR';
 
             this.logger.log(item);
           }

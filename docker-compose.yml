@@ -21,7 +21,7 @@ services:
     image: elasticsearch:8.12.2
     environment:
       discovery.type: single-node
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      ES_JAVA_OPTS: "-Xms1024m -Xmx1024m"
       ELASTIC_PASSWORD: local
     ports:
       - "9200:9200"
@@ -41,7 +41,7 @@ services:
   logstash:
     image: logstash:8.12.2
     environment:
-      LS_JAVA_OPTS: "-Xms512m -Xmx512m"
+      LS_JAVA_OPTS: "-Xms1024m -Xmx1024m"
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z

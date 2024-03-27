@@ -21,12 +21,15 @@ export class CrawlerGlisshopHandler implements CrawlerHandler {
 
   handle(): PlaywrightCrawler {
     return new PlaywrightCrawler({
-      requestHandler: async ({ request, page, enqueueLinks, $ }) => {
+      requestHandler: async ({ request, page, enqueueLinks }) => {
         if (request.label === 'DETAIL') {
           const title = await page.title();
           const item = {
             title,
             url: request.loadedUrl,
+            currency: 'EUR',
+            scanDate: new Date(),
+            source: CRAWLER_GLISSHOP_HOSTNAME,
           } as CrawlerItem;
 
           if (request.loadedUrl?.includes('chaussures-ski-alpin')) {
@@ -36,7 +39,7 @@ export class CrawlerGlisshopHandler implements CrawlerHandler {
 
             item.productName = await page.locator('h1.title').textContent();
 
-            item.originPrice = (await page
+            const originPriceStr = (await page
               .locator('#cartBox .product-price p.advice-price__price')
               .first()
               .count())
@@ -48,14 +51,25 @@ export class CrawlerGlisshopHandler implements CrawlerHandler {
                 ).trim()
               : null;
 
-            item.salePrice = (
+            if (originPriceStr) {
+              const originPriceArr = originPriceStr.split(' ');
+              item.originPrice = parseFloat(
+                originPriceArr[0].replace(',', '.'),
+              );
+            }
+
+            const salePriceStr = (
               await page
                 .locator('#cartBox .product-price div.c-price span.price-value')
                 .first()
                 .textContent()
             ).trim();
 
-            this.logger.log(item);
+            const salePriceArr = salePriceStr.split(' ');
+
+            item.salePrice = parseFloat(salePriceArr[0].replace(',', '.'));
+
+            this.logger.log(item); // push to elk.
           }
 
           // Save results as JSON to ./storage/datasets/default

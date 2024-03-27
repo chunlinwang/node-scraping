@@ -8,35 +8,36 @@ filebeat.inputs:
   enabled: true
   paths:
     - "/var/lib/docker/containers/*/*.log"
+  # json.keys_under_root: true
+  # json.add_error_key: true
+  # json.message_key: log
 
 processors:
 - add_docker_metadata:
     host: "unix:///var/run/docker.sock"
 
-- decode_json_fields:
-    fields: ["message"]
-    target: "json"
-    overwrite_keys: true
+# - decode_json_fields:
+#     fields: ["message"]
+#     target: "json"
+#     overwrite_keys: true
 
 logging.json: true
 logging.metric:
   enabled: true
   period: 10s
 
-# output.logstash:
-#   hosts: ["logstash:5044"]
-#   ttl: 120
+output.logstash:
+  hosts: ["logstash:5044"]
+  ttl: 120
 
-output.elasticsearch:
-  hosts: ["http://elasticsearch:9200"]
-  username: "elastic"
-  password: "local"
-  indices:
-    - index: "app-%{+yyyy.MM.dd}"        
-      when:
-          equals:
-            container.image.name: node-scraping-app  
-          contains:
-            
+# output.elasticsearch:
+#   hosts: ["http://elasticsearch:9200"]
+#   username: "elastic"
+#   password: "local"
+#   indices:
+#     - index: "app-%{+yyyy.MM.dd}"        
+#       when:
+#           equals:
+#             container.image.name: node-scraping-app   # need add_docker_metadata
 
 setup.kibana.host: "http://kibana:5601"

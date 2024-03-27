@@ -4,6 +4,9 @@ export interface CrawlerItem {
   url: string;
   brand: string;
   productName: string;
-  originPrice?: string;
-  salePrice: string;
+  originPrice?: number;
+  salePrice: number;
+  currency: string;
+  source: string;
+  scanDate: Date;
 }
