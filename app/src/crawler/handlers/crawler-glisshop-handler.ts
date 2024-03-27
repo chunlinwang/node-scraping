@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { Dataset, PlaywrightCrawler } from 'crawlee';
+import { Logger } from 'nestjs-pino';
+import { PlaywrightCrawler } from 'crawlee';
 import { CrawlerHandler } from '@crawler/crawler-handler.interface';
 import UrlValidator from '@src/utils/url-validator';
-import { CRAWLER_GLISSHOP_HOSTNAME } from '@crawler/handlers/crawler-hostname';
+import { CRAWLER_GLISSHOP_HOSTNAME } from '@src/crawler/handlers/crawler-source-hostname';
 import { CrawlerItem } from '@crawler/crawler-item.interface';
 
 @Injectable()
 export class CrawlerGlisshopHandler implements CrawlerHandler {
+  constructor(private readonly logger: Logger) {}
+
   support(href: string): boolean {
     const urlValidator = new UrlValidator(href);
 
@@ -16,58 +19,61 @@ export class CrawlerGlisshopHandler implements CrawlerHandler {
     );
   }
 
-  handle(href: string = null): PlaywrightCrawler {
-    if (href) {
-      return new PlaywrightCrawler({
-        requestHandler: async ({ request, page, enqueueLinks, log }) => {
-          if (request.label === 'DETAIL') {
-            const title = await page.title();
-            log.info(`Title of ${request.loadedUrl} is '${title}'`);
+  handle(): PlaywrightCrawler {
+    return new PlaywrightCrawler({
+      requestHandler: async ({ request, page, enqueueLinks, $ }) => {
+        if (request.label === 'DETAIL') {
+          const title = await page.title();
+          const item = {
+            title,
+            url: request.loadedUrl,
+          } as CrawlerItem;
 
-            const item = {
-              title,
-              url: request.loadedUrl,
-            } as CrawlerItem;
+          if (request.loadedUrl?.includes('chaussures-ski-alpin')) {
+            item.brand = await page
+              .locator('.product-details .title > a')
+              .textContent();
 
-            if (request.loadedUrl?.includes('chaussures-ski-alpin')) {
-              item.brand = await page
-                .locator('.product-details .title > a')
-                .textContent();
+            item.productName = await page.locator('h1.title').textContent();
 
-              item.productName = await page.locator('h1.title').textContent();
+            item.originPrice = (await page
+              .locator('#cartBox .product-price p.advice-price__price')
+              .first()
+              .count())
+              ? (
+                  await page
+                    .locator('#cartBox .product-price p.advice-price__price')
+                    .first()
+                    .textContent()
+                ).trim()
+              : null;
 
-              item.originPrice = (
-                await page
-                  .locator('.product-price p.advice-price__price')
-                  .first()
-                  .textContent()
-              ).trim();
+            item.salePrice = (
+              await page
+                .locator('#cartBox .product-price div.c-price span.price-value')
+                .first()
+                .textContent()
+            ).trim();
 
-              item.salePrice = (
-                await page
-                  .locator('.product-price div.c-price span.price-value')
-                  .first()
-                  .textContent()
-              ).trim();
-            }
-
-            // Save results as JSON to ./storage/datasets/default
-            await Dataset.pushData(item);
-          } else {
-            // Extract links from the current page
-            // and add them to the crawling queue.
-            await enqueueLinks({
-              selector: '.product-hover > a',
-              label: 'DETAIL',
-            });
-
-            await enqueueLinks({
-              selector: '.bottom-pagination > a',
-              label: 'LIST',
-            });
+            this.logger.log(item);
           }
-        },
-      });
-    }
+
+          // Save results as JSON to ./storage/datasets/default
+          // await Dataset.pushData(item);
+        } else {
+          // Extract links from the current page
+          // and add them to the crawling queue.
+          await enqueueLinks({
+            selector: '.product-hover > a',
+            label: 'DETAIL',
+          });
+
+          await enqueueLinks({
+            selector: '.bottom-pagination > a',
+            label: 'LIST',
+          });
+        }
+      },
+    });
   }
 }

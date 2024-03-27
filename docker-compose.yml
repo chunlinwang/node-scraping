@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-
   app: 
     build: 
       context: app
@@ -10,25 +9,26 @@ services:
       - web 
       - elk
     tty: true
+    user: root
     volumes:
       - ./app:/app
-    command: sh -c "pnpm install && pnpm start"
+    depends_on:
+      - elasticsearch
+      - filebeat
+    command: sh -c "pnpm install && pnpm cmd:crawler"
 
   elasticsearch:
     image: elasticsearch:8.12.2
     environment:
       discovery.type: single-node
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-      xpack.license.self_generated.type: trial
-      xpack.security.enabled: true
       ELASTIC_PASSWORD: local
-      xpack.security.enrollment.enabled: true
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
-      - ./elastic/docker-cluster.log:/usr/share/elasticsearch/logs/docker-cluster.log
-      - elasticsearchdata:/usr/share/elasticsearch/data
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ./elastic/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
       interval: 10s
@@ -41,12 +41,11 @@ services:
   logstash:
     image: logstash:8.12.2
     environment:
-      # discovery.seed_hosts: logstash
       LS_JAVA_OPTS: "-Xms512m -Xmx512m"
-      LOGSTASH_INTERNAL_PASSWORD: local
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+      - ls_data:/usr/share/logstash/data
     ports:
       - "5000:5000/tcp"
       - "5000:5000/udp"
@@ -58,32 +57,27 @@ services:
       - elk
 
   filebeat:
-    image: docker.elastic.co/beats/filebeat:8.12.2
     build:
       context: filebeat
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=local
-    user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
-      # - /var/run/docker.sock:/host_docker/docker.sock
-      # - /var/lib/docker:/host_docker/var/lib/docker
-      - filebeatdata:/usr/share/filebeat/data:rw
+      - filebeat_data:/usr/share/filebeat/data:rw
     networks:
       - elk
     depends_on:
       - elasticsearch
-      - logstash
 
   kibana:
     image: kibana:8.12.2
     ports:
       - "5601:5601"
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - kb_data:/usr/share/kibana/data
     depends_on:
       - elasticsearch
+      - filebeat
     networks:
       - elk
 
@@ -93,5 +87,7 @@ networks:
   web:  
 
 volumes:
-  elasticsearchdata:
-  filebeatdata: 
+  elasticsearch_data:
+  filebeat_data:
+  ls_data:
+  kb_data:

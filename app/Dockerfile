@@ -1,21 +1,13 @@
-FROM apify/actor-node-playwright-chrome:20 AS builder
-
-COPY . .
-
-RUN chown -R node: .
-
-USER node
-
-RUN npm install -g pnpm
-
-RUN pnpm setup
-
-RUN pnpm i -g @nestjs/cli
+FROM node:20-bookworm AS builder
 
 WORKDIR /app
 
-RUN pnpm i
+COPY . .
 
-# USER root
-# RUN pnpm exec playwright install --with-deps
-# USER node
+RUN npm install -g pnpm @nestjs/cli
+
+RUN npx playwright install --with-deps
+
+RUN pnpm config set store-dir ~/pnpm
+
+RUN pnpm install

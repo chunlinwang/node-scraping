@@ -6,8 +6,7 @@ async function bootstrap() {
 }
 
 bootstrap()
-  .then(async (app) => {
-    console.info(`${app} command bootstrapped ...!`);
+  .then(async () => {
     process.exit(0);
   })
   .catch((err) => {

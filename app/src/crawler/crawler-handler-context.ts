@@ -8,11 +8,13 @@ export class CrawlerHandlerContext {
     @Inject('CRAWLER_HANDLERS') private readonly handlers: CrawlerHandler[],
   ) {}
 
-  async handle(href: string): Promise<PlaywrightCrawler> {
+  handle(href: string): PlaywrightCrawler {
     for (const handler of this.handlers) {
       if (handler.support(href)) {
-        return handler.handle(href);
+        return handler.handle();
       }
     }
+
+    return null;
   }
 }

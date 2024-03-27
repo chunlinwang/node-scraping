@@ -1,5 +1,31 @@
-cluster.name: docker-cluster
-network.host: 0.0.0.0
+discovery.type: single-node
+#discovery.seed_hosts: [elasticsearch]
 xpack.license.self_generated.type: trial
-xpack.security.enabled: true
 xpack.security.enrollment.enabled: true
+xpack.security.autoconfiguration.enabled: false
+xpack.security.enabled: false
+#xpack.monitoring.enabled: false
+xpack.profiling.enabled: false
+xpack.monitoring.templates.enabled: false
+http.host: 0.0.0.0
+transport.host: 0.0.0.0
+cluster.name: elasticsearch
+bootstrap.memory_lock: true
+network.host: localhost
+#path.data: /elastic/data
+#path.logs: /var/log/elasticsearch
+
+#xpack.security.transport.ssl:
+#  enabled: true
+#  verification_mode: certificate
+#  key: /etc/elasticsearch/ssl/certs/corp/key.pem
+#  certificate: /etc/elasticsearch/ssl/certs/corp/chain.pem
+#  certificate_authorities: [ "/etc/elasticsearch/ssl/certs/corp/le-ca-RSA-chain.pem", "/etc/elasticsearch/ssl/certs/corp/le-ca.pem", "/etc/elasticsearch/ssl/certs/corp/ca-bundle-chain.pem" ]
+
+# Enable encryption for HTTP API client connections, such as Kibana, Logstash, and Agents
+#xpack.security.http.ssl:
+#  enabled: true
+#  verification_mode: certificate
+#  key:  /etc/elasticsearch/ssl/certs/corp/key.pem
+#  certificate: /etc/elasticsearch/ssl/certs/corp/chain.pem
+#  certificate_authorities: [ "/etc/elasticsearch/ssl/certs/corp/le-ca.pem", "/etc/elasticsearch/ssl/certs/corp/le-ca-RSA-chain.pem", "/etc/elasticsearch/ssl/certs/corp/ca-bundle-chain.pem" ]

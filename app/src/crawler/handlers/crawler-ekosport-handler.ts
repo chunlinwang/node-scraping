@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PlaywrightCrawler } from 'crawlee';
-import { CRAWLER_XSPO_HOSTNAME } from '@src/crawler/handlers/crawler-source-hostname';
+import { CRAWLER_EKOSPORT_HOSTNAME } from '@src/crawler/handlers/crawler-source-hostname';
 import UrlValidator from '@src/utils/url-validator';
 import { CrawlerHandler } from '@crawler/crawler-handler.interface';
 import { CrawlerItem } from '@crawler/crawler-item.interface';
 import { Logger } from 'nestjs-pino';
 
 @Injectable()
-export class CrawlerXspoHandler implements CrawlerHandler {
+export class CrawlerEkosportHandler implements CrawlerHandler {
   constructor(private readonly logger: Logger) {}
 
   support(href: string): boolean {
@@ -15,7 +15,7 @@ export class CrawlerXspoHandler implements CrawlerHandler {
 
     return (
       urlValidator.isValid() &&
-      urlValidator.getHostName() === CRAWLER_XSPO_HOSTNAME
+      urlValidator.getHostName() === CRAWLER_EKOSPORT_HOSTNAME
     );
   }
 
@@ -29,7 +29,7 @@ export class CrawlerXspoHandler implements CrawlerHandler {
             url: request.loadedUrl,
           } as CrawlerItem;
 
-          if (request.loadedUrl?.includes('alpine-ski-boots')) {
+          if (request.loadedUrl?.includes('chaussures-ski-alpin')) {
             item.brand = await page
               .locator('.product-details .title > a')
               .textContent();
