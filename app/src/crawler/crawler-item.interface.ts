@@ -9,4 +9,5 @@ export interface CrawlerItem {
   currency: string;
   source: string;
   scanDate: Date;
+  category: string;
 }

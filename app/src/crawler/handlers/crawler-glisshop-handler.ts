@@ -30,6 +30,7 @@ export class CrawlerGlisshopHandler implements CrawlerHandler {
             currency: 'EUR',
             scanDate: new Date(),
             source: CRAWLER_GLISSHOP_HOSTNAME,
+            category: 'ski_boots',
           } as CrawlerItem;
 
           if (request.loadedUrl?.includes('chaussures-ski-alpin')) {
