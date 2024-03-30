@@ -1,6 +1,7 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 import { PinoLogger } from 'nestjs-pino';
 import { CrawlerService } from '@crawler/crawler.service';
+import { ConfigService } from '@nestjs/config';
 
 interface BasicCommandOptions {
   string?: string;
@@ -18,6 +19,7 @@ export class CrawlerCommand extends CommandRunner {
   constructor(
     private readonly crawlerService: CrawlerService,
     private readonly logger: PinoLogger,
+    private configService: ConfigService,
   ) {
     super();
     this.logger.setContext(CrawlerCommand.name);
@@ -30,9 +32,9 @@ export class CrawlerCommand extends CommandRunner {
     if (options?.string) {
       await this.crawlerService.queryRequests([options.string]);
     } else {
-      await this.crawlerService.queryRequests([
-        'https://www.glisshop.com/ski/chaussure/homme/?facetFilters%5Bf_27875149%5D%5B27874919%5D=1&facetFilters%5Bf_27875149%5D%5B27874920%5D=1',
-      ]);
+      await this.crawlerService.queryRequests(
+        this.configService.get<string[]>('sourceLinks'),
+      );
     }
   }
 

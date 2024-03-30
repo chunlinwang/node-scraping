@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
-import { PlaywrightCrawler } from 'crawlee';
+import { PlaywrightCrawler, sleep } from 'crawlee';
 import { CrawlerHandler } from '@crawler/crawler-handler.interface';
 import UrlValidator from '@src/utils/url-validator';
 import { CRAWLER_GLISSHOP_HOSTNAME } from '@src/crawler/handlers/crawler-source-hostname';
 import { CrawlerItem } from '@crawler/crawler-item.interface';
+import {
+  GLISSHOP_PRICE_REGEX,
+  priceTransformer,
+} from '@src/utils/price-transformer';
 
 @Injectable()
 export class CrawlerGlisshopHandler implements CrawlerHandler {
@@ -44,31 +48,26 @@ export class CrawlerGlisshopHandler implements CrawlerHandler {
               .locator('#cartBox .product-price p.advice-price__price')
               .first()
               .count())
-              ? (
-                  await page
-                    .locator('#cartBox .product-price p.advice-price__price')
-                    .first()
-                    .textContent()
-                ).trim()
+              ? await page
+                  .locator('#cartBox .product-price p.advice-price__price')
+                  .first()
+                  .textContent()
               : null;
 
             if (originPriceStr) {
-              const originPriceArr = originPriceStr.split(' ');
               item.originPrice = parseFloat(
-                originPriceArr[0].replace(',', '.'),
+                priceTransformer(originPriceStr, GLISSHOP_PRICE_REGEX),
               );
             }
 
-            const salePriceStr = (
-              await page
-                .locator('#cartBox .product-price div.c-price span.price-value')
-                .first()
-                .textContent()
-            ).trim();
+            const salePriceStr = await page
+              .locator('#cartBox .product-price div.c-price span.price-value')
+              .first()
+              .innerText();
 
-            const salePriceArr = salePriceStr.split(' ');
-
-            item.salePrice = parseFloat(salePriceArr[0].replace(',', '.'));
+            item.salePrice = parseFloat(
+              priceTransformer(salePriceStr, GLISSHOP_PRICE_REGEX),
+            );
 
             this.logger.log(item); // push to elk.
           }
@@ -88,6 +87,8 @@ export class CrawlerGlisshopHandler implements CrawlerHandler {
             label: 'LIST',
           });
         }
+
+        await sleep(1000);
       },
     });
   }

@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { PlaywrightCrawler, sleep } from 'crawlee';
 import { CrawlerHandler } from '@crawler/crawler-handler.interface';
 import UrlValidator from '@src/utils/url-validator';
-import { CRAWLER_ESAY_GLISS_HOSTNAME } from '@src/crawler/handlers/crawler-source-hostname';
+import { CRAWLER_SNOWLEADER_HOSTNAME } from '@src/crawler/handlers/crawler-source-hostname';
 import { CrawlerItem } from '@crawler/crawler-item.interface';
 import { Logger } from 'nestjs-pino';
 import {
-  EASYGLISS_PRICE_REGEX,
+  SNOWLEADER_PRICE_REGEX,
   priceTransformer,
 } from '@src/utils/price-transformer';
 
 @Injectable()
-export class CrawlerEasyGlissHandler implements CrawlerHandler {
+export class CrawlerSnowLeaderHandler implements CrawlerHandler {
   constructor(private readonly logger: Logger) {}
 
   support(href: string): boolean {
@@ -19,7 +19,7 @@ export class CrawlerEasyGlissHandler implements CrawlerHandler {
 
     return (
       urlValidator.isValid() &&
-      urlValidator.getHostName() === CRAWLER_ESAY_GLISS_HOSTNAME
+      urlValidator.getHostName() === CRAWLER_SNOWLEADER_HOSTNAME
     );
   }
 
@@ -32,36 +32,37 @@ export class CrawlerEasyGlissHandler implements CrawlerHandler {
           const item = {
             title,
             url: request.loadedUrl,
-            source: CRAWLER_ESAY_GLISS_HOSTNAME,
+            source: CRAWLER_SNOWLEADER_HOSTNAME,
             category: 'ski_boots',
           } as CrawlerItem;
 
           item.brand = await page
-            .locator('.bloc_titre_produit h1 > b')
+            .locator('meta[property="product:brand"]')
             .textContent();
 
           item.productName = await page
-            .locator('.bloc_titre_produit h1')
-            .innerText();
+            .locator('meta[name="keywords"]')
+            .getAttribute('content');
 
           item.salePrice = parseFloat(
             await page
-              .locator('.our_price_display meta[itemprop="price"]')
+              .locator('meta[property="product:price:amount"]')
               .getAttribute('content'),
           );
 
           const originPriceStr = await page
-            .locator('#old_price_display > span.price')
+            .locator('.c-product-infos .c-product-price__regular')
+            .first()
             .innerText();
 
           if (originPriceStr) {
             item.originPrice = parseFloat(
-              priceTransformer(originPriceStr, EASYGLISS_PRICE_REGEX),
+              priceTransformer(originPriceStr, SNOWLEADER_PRICE_REGEX)
             );
           }
 
           item.currency = await page
-            .locator('.our_price_display meta[itemprop="priceCurrency"]')
+            .locator('meta[property="product:price:currency"]')
             .getAttribute('content');
 
           this.logger.log(item);
@@ -72,12 +73,12 @@ export class CrawlerEasyGlissHandler implements CrawlerHandler {
           // Extract links from the current page
           // and add them to the crawling queue.
           await enqueueLinks({
-            selector: 'a.product_img_link',
+            selector: '.c-product-item__link > a',
             label: 'DETAIL',
           });
 
           await enqueueLinks({
-            selector: 'ul.pagination > a',
+            selector: 'a.c-pagination-bottom__more',
             label: 'LIST',
           });
         }

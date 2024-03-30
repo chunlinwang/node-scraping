@@ -7,15 +7,19 @@ import { CrawlerGlisshopHandler } from '@crawler/handlers/crawler-glisshop-handl
 import { CrawlerXspoHandler } from '@crawler/handlers/crawler-xspo-handler';
 import { CrawlerEasyGlissHandler } from '@crawler/handlers/crawler-easy-gliss-handler';
 import { CrawlerHandler } from '@crawler/crawler-handler.interface';
+import { CrawlerSnowLeaderHandler } from '@crawler/handlers/crawler-snowleader-handler';
+import { ConfigModule } from '@nestjs/config';
 
 @Global()
 @Module({
+  imports: [ConfigModule],
   providers: [
     CrawlerCommand,
     PinoLogger,
     CrawlerGlisshopHandler,
     CrawlerXspoHandler,
     CrawlerEasyGlissHandler,
+    CrawlerSnowLeaderHandler,
     CrawlerHandlerContext,
     {
       provide: 'CRAWLER_HANDLERS',
@@ -26,6 +30,7 @@ import { CrawlerHandler } from '@crawler/crawler-handler.interface';
         CrawlerGlisshopHandler,
         CrawlerXspoHandler,
         CrawlerEasyGlissHandler,
+        CrawlerSnowLeaderHandler,
       ],
     },
     CrawlerService,
